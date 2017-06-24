@@ -4,9 +4,7 @@ import Date exposing (Date)
 import Html exposing (Html, text, div, img, input)
 import Html.Attributes exposing (class, src, type_, value)
 import Html.Events exposing (onInput)
-import Combine as C exposing ((<$>), (<*), (*>), (>>=))
-import Combine.Num as C
-import Regex as R
+import OmniSearch as O
 
 type CandidateSearch
     = Hotel HotelSearch
@@ -40,42 +38,16 @@ init path =
     }
     , Cmd.none )
 
-safeParseInt =
-    String.trim >> String.toInt >> Result.withDefault 0
-
-adultsParser =
-    C.regex "([0-9]{1,2})a"
-        |> C.map (String.dropRight 1)
-        |> C.map safeParseInt
-
-intArrayParser =
-    C.sepBy (C.regex " *, *") (C.regex "[0-9]{1,2}")
-        |> C.map (List.map safeParseInt)
-
-childAgesParser =
-    C.regex "\\[ *"
-        *> intArrayParser
-        <* C.regex " *\\]"
-
-{-|
-Dates might look like
-dd-mm-yyyy
-dd/mm/yyyy
-dd-mm
-dd/mm
--}
-dateParser =
-    C.many datePartParser
-
-datePartParser =
-    C.int <* (C.maybe (C.regex "(-|/)"))
-
 type Msg
     = UpdateSearchText String
 
 extractPossibleSearches: String -> List CandidateSearch
 extractPossibleSearches search =
-    []
+    let
+        tokens =
+            O.parse search
+    in
+        []
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
