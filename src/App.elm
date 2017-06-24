@@ -4,7 +4,7 @@ import Date exposing (Date)
 import Html exposing (Html, text, div, img, input)
 import Html.Attributes exposing (class, src, type_, value)
 import Html.Events exposing (onInput)
-import Combine as C exposing ((<$>), (<*), (*>))
+import Combine as C exposing ((<$>), (<*), (*>), (>>=))
 import Combine.Num as C
 import Regex as R
 
@@ -57,6 +57,18 @@ childAgesParser =
         *> intArrayParser
         <* C.regex " *\\]"
 
+{-|
+Dates might look like
+dd-mm-yyyy
+dd/mm/yyyy
+dd-mm
+dd/mm
+-}
+dateParser =
+    C.many datePartParser
+
+datePartParser =
+    C.int <* (C.maybe (C.regex "(-|/)"))
 
 type Msg
     = UpdateSearchText String
