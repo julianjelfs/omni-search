@@ -3,6 +3,7 @@ module OmniSearch exposing (..)
 import Date
 import Combine as C exposing ((*>), (<*), (>>=))
 import Combine.Num as C
+import Combine.Char as C
 
 type SearchToken
     = Adults Int
@@ -10,28 +11,40 @@ type SearchToken
     | Date Date.Date
     | Other String
 
-parse : String -> List SearchToken
-parse input =
-    String.words input
-        |> List.foldl
-            (\word tokens ->
-                let
-                    res =
-                        word |> C.parse
-                            (C.choice
-                                [ adultsParser
-                                , childAgesParser
-                                ])
-                in
-                    case res of
-                        Ok (_, _, result) ->
-                            result :: tokens
-                        _ -> Other word :: tokens
-            ) []
+{-|
+I have a feeling this is exactly what chainl is for but I don't quite get it
+-}
+parse : String -> List SearchToken -> List SearchToken
+parse txt tokens =
+    case txt of
+        "" -> tokens
+        _ ->
+            let
+                res =
+                   txt |> C.parse
+                        (C.choice
+                            [ adultsParser
+                            , childAgesParser
+                            , wordParser
+                            ])
+            in
+                case res of
+                    Ok (_, { input }, result) ->
+                        parse input (result :: tokens)
+                    _ ->
+                        case C.parse C.space txt of
+                            Ok (_, { input }, result) ->
+                                parse input tokens
+                            _ -> tokens
 
 safeParseInt : String -> Int
 safeParseInt =
     String.trim >> String.toInt >> Result.withDefault 0
+
+wordParser : C.Parser s SearchToken
+wordParser =
+    C.regex "[A-Za-z]+"
+        |> C.map Other
 
 adultsParser : C.Parser s SearchToken
 adultsParser =
