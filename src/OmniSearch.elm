@@ -1,7 +1,7 @@
 module OmniSearch exposing (..)
 
 import Date
-import Combine as C exposing ((*>), (<*), (>>=))
+import Combine as C exposing ((*>), (<*), (>>=), (<|>))
 import Combine.Num as C
 import Combine.Char as C
 
@@ -9,11 +9,10 @@ type SearchToken
     = Adults Int
     | ChildAges (List Int)
     | Date Date.Date
+    | From String
+    | To String
     | Other String
 
-{-|
-I have a feeling this is exactly what chainl is for but I don't quite get it
--}
 parse : String -> List SearchToken -> List SearchToken
 parse txt tokens =
     case txt of
@@ -25,6 +24,8 @@ parse txt tokens =
                         (C.choice
                             [ adultsParser
                             , childAgesParser
+                            , fromParser
+                            , toParser
                             , wordParser
                             ])
             in
@@ -68,5 +69,21 @@ childAgesParser =
 dateParser =
     C.many datePartParser
 
+fullDateParser =
+    C.regex "[0-9]{1,2}-[0-9]{1,2}-[0-9]{2,4}"
+        <|> C.regex "[0-9]{1,2}//[0-9]{1,2}//[0-9]{2,4}"
+
+partialDateParser =
+    C.regex "[0-9]{1,2}-[0-9]{1,2}"
+        <|> C.regex "[0-9]{1,2}//[0-9]{1,2}"
+
 datePartParser =
     C.int <* (C.maybe (C.regex "(-|/)"))
+
+fromParser =
+    C.string "from " *> C.regex "[A-Za-z]+"
+        |> C.map From
+
+toParser =
+    C.string "to " *> C.regex "[A-Za-z]+"
+        |> C.map To
