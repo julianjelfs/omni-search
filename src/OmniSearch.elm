@@ -15,7 +15,12 @@ type SearchToken
     | Date Date.Date
     | From String
     | To String
+    | Nights Int
     | Other String
+
+type DurationType
+    = Week
+    | Day
 
 parse : String -> List SearchToken -> List SearchToken
 parse txt tokens =
@@ -31,6 +36,7 @@ parse txt tokens =
                             , fromParser
                             , toParser
                             , dateParser
+                            , durationParser
                             , wordParser
                             ])
             in
@@ -49,7 +55,7 @@ wordParser =
 
 adultsParser : C.Parser s SearchToken
 adultsParser =
-    C.int <* C.string "a"
+    C.int <* C.regex " adult(s)?"
         |> C.map Adults
 
 intArrayParser : C.Parser s (List Int)
@@ -74,7 +80,7 @@ dateParser =
 
 datePartParser =
     C.regex "[0-9]+" <* (C.maybe (C.regex "(-|/)"))
-        |> C.map (String.toInt >> Result.withDefault 0)
+        |> C.map safeStringToInt
 
 fromParser =
     C.string "from " *> word
@@ -83,3 +89,23 @@ fromParser =
 toParser =
     C.string "to " *> word
         |> C.map To
+
+safeStringToInt =
+    String.toInt >> Result.withDefault 0
+
+durationParser =
+    safeStringToInt <$> C.regex "[0-9]+"
+        >>= (\n -> durationDescriptionParser
+        >>= (\d ->
+            C.succeed
+                (case d of
+                    Week -> Nights (n * 7)
+                    Day -> Nights n)
+        ))
+
+durationDescriptionParser =
+    C.choice
+        [ C.regex " weeks?" |> C.map (\_ -> Week)
+        , C.regex " days?" |> C.map (\_ -> Day)
+        , C.regex " nights?" |> C.map (\_ -> Day)
+        ]
