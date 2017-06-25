@@ -73,10 +73,8 @@ dateParser =
     clamp 1 31 <$> datePartParser
         >>= (\d -> clamp 1 12 <$> datePartParser
         >>= (\m -> datePartParser
-        >>= (\y ->
-            C.succeed
-                <| Date
-                <| D.dateFromFields y (D.intToMonth m) d 0 0 0 0)))
+        |> C.map (\y ->
+            Date <| D.dateFromFields y (D.intToMonth m) d 0 0 0 0)))
 
 datePartParser =
     C.regex "[0-9]+" <* (C.maybe (C.regex "(-|/)"))
@@ -96,12 +94,12 @@ safeStringToInt =
 durationParser =
     safeStringToInt <$> C.regex "[0-9]+"
         >>= (\n -> durationDescriptionParser
-        >>= (\d ->
-            C.succeed
-                (case d of
+        |> C.map
+            (\d ->
+                case d of
                     Week -> Nights (n * 7)
-                    Day -> Nights n)
-        ))
+                    Day -> Nights n
+            ))
 
 durationDescriptionParser =
     C.choice
