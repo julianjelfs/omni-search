@@ -5,6 +5,8 @@ import Combine as C exposing ((*>), (<*), (>>=), (<|>))
 import Combine.Num as C
 import Combine.Char as C
 
+word = C.regex "[A-Za-z]+"
+
 type SearchToken
     = Adults Int
     | ChildAges (List Int)
@@ -44,8 +46,7 @@ safeParseInt =
 
 wordParser : C.Parser s SearchToken
 wordParser =
-    C.regex "[A-Za-z]+"
-        |> C.map Other
+    word |> C.map Other
 
 adultsParser : C.Parser s SearchToken
 adultsParser =
@@ -81,9 +82,9 @@ datePartParser =
     C.int <* (C.maybe (C.regex "(-|/)"))
 
 fromParser =
-    C.string "from " *> C.regex "[A-Za-z]+"
+    C.string "from " *> word
         |> C.map From
 
 toParser =
-    C.string "to " *> C.regex "[A-Za-z]+"
+    C.string "to " *> word
         |> C.map To
