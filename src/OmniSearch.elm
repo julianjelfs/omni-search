@@ -1,9 +1,11 @@
 module OmniSearch exposing (..)
 
 import Date
-import Combine as C exposing ((*>), (<*), (>>=), (<|>))
+import Combine as C exposing ((*>), (<*), (>>=), (<|>), (<$>))
 import Combine.Num as C
 import Combine.Char as C
+import Date.Extra.Create as D
+import Date.Extra.Core as D
 
 word = C.regex "[A-Za-z]+"
 
@@ -28,6 +30,7 @@ parse txt tokens =
                             , childAgesParser
                             , fromParser
                             , toParser
+                            , dateParser
                             , wordParser
                             ])
             in
@@ -61,18 +64,17 @@ childAgesParser =
         |> C.map ChildAges
 
 dateParser =
-    C.many datePartParser
-
-fullDateParser =
-    C.regex "[0-9]{1,2}-[0-9]{1,2}-[0-9]{2,4}"
-        <|> C.regex "[0-9]{1,2}//[0-9]{1,2}//[0-9]{2,4}"
-
-partialDateParser =
-    C.regex "[0-9]{1,2}-[0-9]{1,2}"
-        <|> C.regex "[0-9]{1,2}//[0-9]{1,2}"
+    clamp 1 31 <$> datePartParser
+        >>= (\d -> clamp 1 12 <$> datePartParser
+        >>= (\m -> datePartParser
+        >>= (\y ->
+            C.succeed
+                <| Date
+                <| D.dateFromFields y (D.intToMonth m) d 0 0 0 0)))
 
 datePartParser =
-    C.int <* (C.maybe (C.regex "(-|/)"))
+    C.regex "[0-9]+" <* (C.maybe (C.regex "(-|/)"))
+        |> C.map (String.toInt >> Result.withDefault 0)
 
 fromParser =
     C.string "from " *> word
