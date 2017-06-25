@@ -9,13 +9,21 @@ import Date.Extra.Core as D
 
 word = C.regex "[A-Za-z]+"
 
+type ProductType
+    = Hotel
+    | Flight
+    | Transfer
+    | Holiday
+
 type SearchToken
     = Adults Int
+    | Rooms Int
     | ChildAges (List Int)
     | Date Date.Date
     | From String
     | To String
     | Nights Int
+    | Product ProductType
     | Other String
 
 type DurationType
@@ -32,11 +40,13 @@ parse txt tokens =
                    txt |> C.parse
                         (C.choice
                             [ adultsParser
+                            , roomParser
                             , childAgesParser
                             , fromParser
                             , toParser
                             , dateParser
                             , durationParser
+                            , productParser
                             , wordParser
                             ])
             in
@@ -49,20 +59,22 @@ parse txt tokens =
                                 parse input tokens
                             _ -> tokens
 
-wordParser : C.Parser s SearchToken
 wordParser =
     word |> C.map Other
 
-adultsParser : C.Parser s SearchToken
-adultsParser =
-    C.int <* C.regex " adult(s)?"
-        |> C.map Adults
+numberOf tagger things =
+    C.int <* things
+        |> C.map tagger
 
-intArrayParser : C.Parser s (List Int)
+adultsParser =
+    numberOf Adults (C.regex " adults?")
+
+roomParser =
+    numberOf Rooms (C.regex " rooms?")
+
 intArrayParser =
     C.sepBy (C.regex " *, *") C.int
 
-childAgesParser : C.Parser s SearchToken
 childAgesParser =
     C.regex "\\[ *"
         *> intArrayParser
@@ -85,15 +97,15 @@ fromParser =
         |> C.map From
 
 toParser =
-    C.string "to " *> word
+    (C.string "to " <|> C.string "in " <|> C.string "near ")
+        *> word
         |> C.map To
 
 safeStringToInt =
     String.toInt >> Result.withDefault 0
 
 durationParser =
-    safeStringToInt <$> C.regex "[0-9]+"
-        >>= (\n -> durationDescriptionParser
+    C.int >>= (\n -> durationDescriptionParser
         |> C.map
             (\d ->
                 case d of
@@ -106,4 +118,13 @@ durationDescriptionParser =
         [ C.regex " weeks?" |> C.map (\_ -> Week)
         , C.regex " days?" |> C.map (\_ -> Day)
         , C.regex " nights?" |> C.map (\_ -> Day)
+        ]
+
+productParser =
+    C.choice
+        [ (\_ -> Product Hotel) <$> C.regex "hotels?"
+        , (\_ -> Product Flight) <$> C.regex "flights?"
+        , (\_ -> Product Holiday) <$> C.regex "holiday?"
+        , (\_ -> Product Holiday) <$> C.regex "packages?"
+        , (\_ -> Product Transfer) <$> C.regex "transfers?"
         ]
