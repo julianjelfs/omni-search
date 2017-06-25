@@ -40,25 +40,18 @@ parse txt tokens =
                                 parse input tokens
                             _ -> tokens
 
-safeParseInt : String -> Int
-safeParseInt =
-    String.trim >> String.toInt >> Result.withDefault 0
-
 wordParser : C.Parser s SearchToken
 wordParser =
     word |> C.map Other
 
 adultsParser : C.Parser s SearchToken
 adultsParser =
-    C.regex "[0-9]{1,2}a"
-        |> C.map (String.dropRight 1)
-        |> C.map safeParseInt
+    C.int <* C.string "a"
         |> C.map Adults
 
 intArrayParser : C.Parser s (List Int)
 intArrayParser =
-    C.sepBy (C.regex " *, *") (C.regex "[0-9]{1,2}")
-        |> C.map (List.map safeParseInt)
+    C.sepBy (C.regex " *, *") C.int
 
 childAgesParser : C.Parser s SearchToken
 childAgesParser =
