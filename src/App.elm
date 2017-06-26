@@ -5,6 +5,7 @@ import Html exposing (Html, text, div, img, input)
 import Html.Attributes exposing (class, src, type_, value)
 import Html.Events exposing (onInput)
 import OmniSearch as O
+import Task
 
 type CandidateSearch
     = Hotel HotelSearch
@@ -26,7 +27,8 @@ type alias Destination =
 type alias Model =
     { logo : String
     , searchText : Maybe String
-    , searches : List CandidateSearch
+    , searches : List O.SearchToken
+    , now : Maybe Date.Date
     }
 
 
@@ -35,24 +37,31 @@ init path =
     ( { logo = path
     , searchText = Nothing
     , searches = []
+    , now = Nothing
     }
-    , Cmd.none )
+    , Task.perform Now Date.now )
 
 type Msg
     = UpdateSearchText String
+    | Now Date.Date
 
-extractPossibleSearches: String -> List CandidateSearch
-extractPossibleSearches search =
-    let
-        tokens =
-            O.parse search
-    in
-        []
+extractPossibleSearches: Date.Date -> String -> List O.SearchToken
+extractPossibleSearches now search =
+    O.parse now search []
+        |> List.filter
+            (\s ->
+                case s of
+                    O.Other _ -> False
+                    _ -> True)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Now d ->
+            ( { model | now = Just d }
+            , Cmd.none )
+
         UpdateSearchText s ->
             let
                 searchText =
@@ -63,7 +72,7 @@ update msg model =
             in
             ( { model | searchText = searchText
              , searches =
-                    Maybe.map extractPossibleSearches searchText
+                    Maybe.map2 extractPossibleSearches model.now searchText
                         |> Maybe.withDefault []
             }
             , Cmd.none )

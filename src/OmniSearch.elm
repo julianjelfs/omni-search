@@ -1,13 +1,13 @@
 module OmniSearch exposing (..)
 
-import Date
+import Date exposing (Date)
 import Combine as C exposing ((*>), (<*), (>>=), (<|>), (<$>))
 import Combine.Num as C
 import Combine.Char as C
 import Date.Extra.Create as D
 import Date.Extra.Core as D
 
-word = C.regex "[A-Za-z]+"
+word = C.regex "[A-Za-z0-9]+"
 
 type ProductType
     = Hotel
@@ -30,8 +30,8 @@ type DurationType
     = Week
     | Day
 
-parse : String -> List SearchToken -> List SearchToken
-parse txt tokens =
+parse : Date -> String -> List SearchToken -> List SearchToken
+parse now txt tokens =
     case txt of
         "" -> tokens
         _ ->
@@ -52,11 +52,11 @@ parse txt tokens =
             in
                 case res of
                     Ok (_, { input }, result) ->
-                        parse input (result :: tokens)
+                        parse now input (result :: tokens)
                     _ ->
                         case C.parse C.space txt of
                             Ok (_, { input }, result) ->
-                                parse input tokens
+                                parse now input tokens
                             _ -> tokens
 
 wordParser =
@@ -76,9 +76,9 @@ intArrayParser =
     C.sepBy (C.regex " *, *") C.int
 
 childAgesParser =
-    C.regex "\\[ *"
+    C.regex "\\( *"
         *> intArrayParser
-        <* C.regex " *\\]"
+        <* C.regex " *\\)"
         |> C.map ChildAges
 
 dateParser =
@@ -93,12 +93,18 @@ datePartParser =
         |> C.map safeStringToInt
 
 fromParser =
-    C.string "from " *> word
+    C.string "from " *> placeParser
         |> C.map From
+
+inQuotes =
+    (C.between (C.string "\"") (C.string "\"") (C.regex "[a-zA-Z 0-9]*"))
+
+placeParser =
+    word <|> inQuotes
 
 toParser =
     (C.string "to " <|> C.string "in " <|> C.string "near ")
-        *> word
+        *> placeParser
         |> C.map To
 
 safeStringToInt =
