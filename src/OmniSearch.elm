@@ -1,11 +1,12 @@
 module OmniSearch exposing (..)
 
-import Date exposing (Date)
+import Date exposing (Date, year, month, day)
 import Combine as C exposing ((*>), (<*), (>>=), (<|>), (<$>))
 import Combine.Num as C
 import Combine.Char as C
 import Date.Extra.Create as D
 import Date.Extra.Core as D
+import Date.Extra.Period as D
 
 word = C.regex "[A-Za-z0-9]+"
 
@@ -45,6 +46,7 @@ parse now txt tokens =
                             , fromParser
                             , toParser
                             , dateParser
+                            , (relativeDateParser now)
                             , durationParser
                             , productParser
                             , wordParser
@@ -80,6 +82,17 @@ childAgesParser =
         *> intArrayParser
         <* C.regex " *\\)"
         |> C.map ChildAges
+
+relativeDateParser now =
+    tomorrowParser now
+
+tomorrowParser now =
+    C.string "tomorrow"
+        |> C.map (\_ ->
+            let
+                t = D.add D.Day 1 now
+            in
+                Date <| D.dateFromFields (year t) (month t) (day t) 0 0 0 0)
 
 dateParser =
     clamp 1 31 <$> datePartParser
