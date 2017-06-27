@@ -13,4 +13,9 @@ img {
 
 .search-box {
     min-width:500px;
+    padding: 10px;
+}
+
+.searches {
+    margin-top: 10px;
 }
