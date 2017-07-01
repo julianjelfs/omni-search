@@ -7,6 +7,7 @@ import Combine.Char as C
 import Date.Extra.Create as D
 import Date.Extra.Core as D
 import Date.Extra.Period as D
+import Date.Extra.Compare as D
 
 word = C.regex "[A-Za-z0-9]+"
 
@@ -45,7 +46,7 @@ parse now txt tokens =
                             , childAgesParser
                             , fromParser
                             , toParser
-                            , dateParser
+                            , (dateParser now)
                             , (relativeDateParser now)
                             , durationParser
                             , productParser
@@ -94,12 +95,19 @@ tomorrowParser now =
             in
                 Date <| D.dateFromFields (year t) (month t) (day t) 0 0 0 0)
 
-dateParser =
+dateParser now =
     clamp 1 31 <$> datePartParser
         >>= (\d -> clamp 1 12 <$> datePartParser
-        >>= (\m -> datePartParser
-        |> C.map (\y ->
-            Date <| D.dateFromFields y (D.intToMonth m) d 0 0 0 0)))
+        >>= (\m ->
+            C.optional (year now)
+                datePartParser
+                    |> C.map (\y ->
+                        let
+                            date = D.dateFromFields y (D.intToMonth m) d 0 0 0 0
+                        in
+                            case D.is D.Before date now of
+                                True -> Date <| D.dateFromFields (y+1) (D.intToMonth m) d 0 0 0 0
+                                False -> Date date)))
 
 datePartParser =
     C.regex "[0-9]+" <* (C.maybe (C.regex "(-|/)"))
