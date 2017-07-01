@@ -9,17 +9,15 @@ import Task
 
 
 type alias Model =
-    { logo : String
-    , searchText : Maybe String
+    { searchText : Maybe String
     , searches : List O.SearchToken
     , now : Maybe Date.Date
     }
 
 
-init : String -> ( Model, Cmd Msg )
-init path =
-    ( { logo = path
-      , searchText = Nothing
+init : ( Model, Cmd Msg )
+init =
+    ( { searchText = Nothing
       , searches = []
       , now = Nothing
       }
@@ -34,7 +32,7 @@ type Msg
 
 extractPossibleSearches : Date.Date -> String -> List O.SearchToken
 extractPossibleSearches now search =
-    O.parse now search []
+    O.parse now search
         |> List.filter
             (\s ->
                 case s of
@@ -74,26 +72,30 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ img [ src model.logo ] []
-        , div []
-            [ input
-                [ type_ "text"
-                , class "search-box"
-                , placeholder "Enter a search e.g. \"hotel in tenerife 2 rooms 2 adults 18/09/2017 1 week\""
-                , value <| Maybe.withDefault "" model.searchText
-                , onInput UpdateSearchText
-                ]
-                []
-            , showSearches model
+    div [ style
+            [("padding", "40px")]
+        ]
+        [ input
+            [ style [("width", "500px")]
+            , type_ "text"
+            , placeholder "Enter a search e.g. \"hotel in tenerife 2 rooms 2 adults 18/09/2017 1 week\""
+            , value <| Maybe.withDefault "" model.searchText
+            , onInput UpdateSearchText
             ]
+            []
+        , showSearches model
         ]
 
 
 showSearches : Model -> Html Msg
 showSearches model =
     div
-        [ class "searches" ]
+        [ style
+            [ ("margin-top", "10px")
+            , ("font-weight", "bold")
+            , ("font-size", "14px")
+            ]
+        ]
         (List.map
             (\s ->
                 div

@@ -1,4 +1,4 @@
-module OmniSearch exposing (..)
+module OmniSearch exposing (parse, SearchToken(..), ProductType)
 
 import Date exposing (Date, year, month, day)
 import Combine as C exposing ((*>), (<*), (>>=), (<|>), (<$>))
@@ -32,8 +32,12 @@ type DurationType
     = Week
     | Day
 
-parse : Date -> String -> List SearchToken -> List SearchToken
-parse now txt tokens =
+parse : Date -> String -> List SearchToken
+parse now txt =
+    parseInternal now txt []
+
+parseInternal : Date -> String -> List SearchToken -> List SearchToken
+parseInternal now txt tokens =
     case txt of
         "" -> tokens
         _ ->
@@ -55,11 +59,11 @@ parse now txt tokens =
             in
                 case res of
                     Ok (_, { input }, result) ->
-                        parse now input (result :: tokens)
+                        parseInternal now input (result :: tokens)
                     _ ->
                         case C.parse C.space txt of
                             Ok (_, { input }, result) ->
-                                parse now input tokens
+                                parseInternal now input tokens
                             _ -> tokens
 
 wordParser =

@@ -1,24 +1,30 @@
 module Tests exposing (..)
 
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer, list, int, string)
 import Test exposing (..)
-import Expect
-import String
-import App
+import OmniSearch as O
+import Date.Extra.Create as D
+import Date as D
 
+testDate =
+    D.dateFromFields 2017 D.Jul 1 0 0 0 0
 
-all : Test
-all =
-    describe "A Test Suite"
-        [ test "App.model.message should be set properly" <|
+suite : Test
+suite =
+    describe "OmniSearch tests"
+        [ test "Parses number of adults correctly" <|
             \() ->
-                Expect.equal (Tuple.first App.init |> .message) "Your Elm App is working!"
-        , test "Addition" <|
-            \() ->
-                Expect.equal (3 + 7) 10
-        , test "String.left" <|
-            \() ->
-                Expect.equal "a" (String.left 1 "abcdefg")
-        , test "This test should fail" <|
-            \() ->
-                Expect.fail "failed as expected!"
+                let
+                    token =
+                        O.parse testDate "122 adults"
+                            |> List.head
+                in
+                    case token of
+                        Nothing ->
+                            Expect.fail "No tokens received"
+                        Just (O.Adults n) ->
+                            Expect.equal n 12
+                        _ ->
+                            Expect.fail "Incorrect token received"
         ]
