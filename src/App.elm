@@ -8,26 +8,6 @@ import OmniSearch as O
 import Task
 
 
-type CandidateSearch
-    = Hotel HotelSearch
-
-
-type alias HotelSearch =
-    { checkIn : Maybe Date
-    , checkOut : Maybe Date
-    , adults : Int
-    , childAges : List Int
-    , destination : Destination
-    }
-
-
-type alias Destination =
-    { type_ : Int
-    , id : Int
-    , title : String
-    }
-
-
 type alias Model =
     { logo : String
     , searchText : Maybe String
