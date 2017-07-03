@@ -46,5 +46,9 @@ The syntax supported for each individual parser is as follows:
 
 To parse text and receive a list of Search Tokens just call the 
 `parse` function with the current date (required for relative and 
-partial date parsing) and the input text. See the examples directory
-for sample usage.
+partial date parsing) and the input text.  
+
+See the examples directory for sample usage.
+
+See the test for detailed information on how each parser
+is expected to work.
