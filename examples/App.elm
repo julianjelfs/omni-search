@@ -1,8 +1,8 @@
 module App exposing (..)
 
 import Date exposing (Date)
-import Html exposing (Html, text, div, img, input)
-import Html.Attributes exposing (class, src, type_, value, placeholder, style)
+import Html exposing (Html, div, img, input, text, textarea)
+import Html.Attributes exposing (class, cols, placeholder, rows, src, style, type_, value)
 import Html.Events exposing (onInput)
 import OmniSearch as O
 import Task
@@ -75,14 +75,14 @@ view model =
     div [ style
             [("padding", "40px")]
         ]
-        [ input
+        [ textarea
             [ style [("width", "500px")]
-            , type_ "text"
+            , rows 10
+            , cols 200
             , placeholder "Enter a search e.g. \"hotel in tenerife 2 rooms 2 adults 18/09/2017 1 week\""
-            , value <| Maybe.withDefault "" model.searchText
             , onInput UpdateSearchText
             ]
-            []
+            [ text <| Maybe.withDefault "" model.searchText ]
         , showSearches model
         ]
 

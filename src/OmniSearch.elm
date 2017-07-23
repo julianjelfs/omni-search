@@ -8,6 +8,7 @@ import Date.Extra.Create as D
 import Date.Extra.Core as D
 import Date.Extra.Period as D
 import Date.Extra.Compare as D
+import String exposing (join, lines)
 
 word = C.regex "[A-Za-z0-9]+"
 
@@ -37,9 +38,13 @@ type DurationType
     = Week
     | Day
 
+flatten : String -> String
+flatten =
+    lines >> join " "
+
 parse : Date -> String -> List SearchToken
 parse now txt =
-    parseInternal now txt []
+    parseInternal now (flatten txt) []
 
 
 parseInternal : Date -> String -> List SearchToken -> List SearchToken
