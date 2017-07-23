@@ -1,4 +1,4 @@
-module OmniSearch exposing (parse, SearchToken(..), ProductType)
+module OmniSearch exposing (parse, SearchToken(..), ProductType(..))
 
 import Date exposing (Date, year, month, day)
 import Combine as C exposing ((*>), (<*), (>>=), (<|>), (<$>))
@@ -16,6 +16,7 @@ type ProductType
     | Flight
     | Transfer
     | Holiday
+    | CarHire
 
 type SearchToken
     = Adults Int
@@ -160,4 +161,6 @@ productParser =
         , (\_ -> Product Holiday) <$> C.regex "holiday?"
         , (\_ -> Product Holiday) <$> C.regex "packages?"
         , (\_ -> Product Transfer) <$> C.regex "transfers?"
+        , (\_ -> Product CarHire) <$> C.regex "car hire"
+        , (\_ -> Product CarHire) <$> C.regex "carhire"
         ]
