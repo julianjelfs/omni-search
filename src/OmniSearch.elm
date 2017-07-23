@@ -36,6 +36,7 @@ parse : Date -> String -> List SearchToken
 parse now txt =
     parseInternal now txt []
 
+
 parseInternal : Date -> String -> List SearchToken -> List SearchToken
 parseInternal now txt tokens =
     case txt of
@@ -81,6 +82,7 @@ roomParser =
 
 intArrayParser =
     C.sepBy (C.regex " *, *") C.int
+
 
 childAgesParser =
     C.regex "\\( *"
