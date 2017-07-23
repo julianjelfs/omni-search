@@ -18,10 +18,14 @@ type ProductType
     | Holiday
     | CarHire
 
+type ChildAge
+    = ChildAge Int
+    | UnknownAge
+
 type SearchToken
     = Adults Int
     | Rooms Int
-    | ChildAges (List Int)
+    | ChildAges (List ChildAge)
     | Date Date.Date
     | From String
     | To String
@@ -76,7 +80,7 @@ numberOf tagger things =
         |> C.map tagger
 
 adultsParser =
-    numberOf Adults (C.regex " adults?")
+    numberOf Adults ((C.regex " adults?") <|> (C.regex " people") <|> (C.regex " person"))
 
 roomParser =
     numberOf Rooms (C.regex " rooms?")
@@ -89,6 +93,7 @@ childAgesParser =
     C.regex "\\( *"
         *> intArrayParser
         <* C.regex " *\\)"
+        |> C.map (List.map ChildAge)
         |> C.map ChildAges
 
 relativeDateParser now =

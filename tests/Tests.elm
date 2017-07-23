@@ -24,9 +24,23 @@ suite =
                             Expect.equal n 12
                         _ ->
                             Expect.fail "Incorrect token received"
+            , test "Multiple people" <|
+                \() ->
+                    case firstToken "5 people" of
+                        Just (O.Adults n) ->
+                            Expect.equal n 5
+                        _ ->
+                            Expect.fail "Incorrect token received"
             , test "Single adult" <|
                 \() ->
                     case firstToken "1 adult" of
+                        Just (O.Adults n) ->
+                            Expect.equal n 1
+                        _ ->
+                            Expect.fail "Incorrect token received"
+            , test "Single person" <|
+                \() ->
+                    case firstToken "1 person" of
                         Just (O.Adults n) ->
                             Expect.equal n 1
                         _ ->
