@@ -64,10 +64,13 @@ suite =
             ]
         , test "Parses childAges correctly" <|
             \() ->
-                case firstToken "(1, 4,5 , 6)" of
-                    Just (O.ChildAges [1,4,5,6]) ->
+                let
+                    exp =
+                        O.ChildAges (List.map O.ChildAge [1,4,5,6]) |> Just
+                in
+                    if firstToken "(1, 4,5 , 6)"  == exp then
                         Expect.pass
-                    _ ->
+                    else
                         Expect.fail "Incorrect token received"
         , test "Parses departure correctly" <|
             \() ->
@@ -310,7 +313,7 @@ suite =
                                 (\t -> case t of
                                     O.ChildAges p -> Just p
                                     _ -> Nothing)
-                                [2,8]
+                                [O.ChildAge 2, O.ChildAge 8]
 
                         durationFn =
                             tokenExpectation

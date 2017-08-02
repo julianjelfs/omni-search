@@ -1,4 +1,4 @@
-module OmniSearch exposing (parse, SearchToken(..), ProductType(..))
+module OmniSearch exposing (parse, SearchToken(..), ProductType(..), ChildAge(..))
 
 import Date exposing (Date, year, month, day)
 import Combine as C exposing ((*>), (<*), (>>=), (<|>), (<$>))
