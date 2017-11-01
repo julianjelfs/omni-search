@@ -18,6 +18,7 @@ type ProductType
     | Transfer
     | Holiday
     | CarHire
+    | Insurance
 
 type ChildAge
     = ChildAge Int
@@ -80,15 +81,23 @@ parseInternal now txt tokens =
 wordParser =
     word |> C.map Other
 
+leftNumberOf things =
+  things *> C.int
+
+rightNumberOf things =
+  C.int <* things
+
 numberOf tagger things =
-    C.int <* things
-        |> C.map tagger
+  C.choice
+    [ leftNumberOf things
+    , rightNumberOf things ]
+    |> C.map tagger
 
 adultsParser =
-    numberOf Adults ((C.regex " adults?") <|> (C.regex " people") <|> (C.regex " person"))
+    numberOf Adults ((C.regex " ?adults? ?") <|> (C.regex " ?people ?") <|> (C.regex " ?person ?"))
 
 roomParser =
-    numberOf Rooms (C.regex " rooms?")
+  numberOf Rooms (C.regex " ?rooms? ?")
 
 intArrayParser =
     C.sepBy (C.regex " *, *") C.int
@@ -173,4 +182,5 @@ productParser =
         , (\_ -> Product Transfer) <$> C.regex "transfers?"
         , (\_ -> Product CarHire) <$> C.regex "car hire"
         , (\_ -> Product CarHire) <$> C.regex "carhire"
+        , (\_ -> Product Insurance) <$> C.regex "insurance"
         ]
